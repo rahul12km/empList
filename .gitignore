@@ -1,6 +1,6 @@
 # Ignore node_modules for both backend and frontend
 frontend/node_modules/
 server/node_modules/
-.env
+.env 
 build/
 dist/
