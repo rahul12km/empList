@@ -36,7 +36,7 @@ const Empinfo = () => {
 
   const handlesubmit=(e)=>{
     e.preventDefault();
-    console.log(emp)
+   
 
   }
 
