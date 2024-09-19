@@ -1,6 +1,32 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { BaseHost } from "../Api";
+import Cookies from 'js-cookie';
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const [user,setUser] =useState({
+    username:"",
+    password:""
+  })
+
+const navigate=useNavigate()  
+  const Handlelogin = async(e)=>{
+     e.preventDefault();
+
+     try {
+      const response = await axios.post(`${BaseHost}/user/login`, user);
+      
+      if (response.data?.user) {
+        console.log(response.data.user);
+        Cookies.set("user", JSON.stringify(response.data.user), { expires: 7 });
+        navigate("/dashboard");
+      } else {
+        console.error('User data missing from response');
+      }}catch(err){
+      console.error('Login error:', err.response ? err.response.data : err.message);
+     }
+  }
 
   return (
    
@@ -17,6 +43,8 @@ const Login = () => {
                       Username
                     </label>
                     <input
+                     value={user.username}
+                     onChange={(e) => setUser((prev) => ({ ...prev, username: e.target.value }))}
                       type="text"
                       id="text"
                       className="w-full border-2 border-gray-300 p-3 rounded outline-none focus:border-[#5a49e3]"
@@ -30,6 +58,8 @@ const Login = () => {
                       Password
                     </label>
                     <input
+                     value={user.password}
+                     onChange={(e) => setUser((prev) => ({ ...prev, password: e.target.value }))}
                       type="password"
                       id="password"
                       className="w-full border-2 border-gray-300 p-3 rounded outline-none focus:border-[#5a49e3]"
@@ -46,6 +76,7 @@ const Login = () => {
                     </label>
                   </div>
                   <button
+                    onClick={(e)=>Handlelogin(e)}
                     type="submit"
                     className="w-full bg-[#685dbb] text-white p-3 rounded font-semibold hover:bg-[#5a49e3] transition duration-300 cursor-pointer"
                   >

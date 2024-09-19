@@ -18,24 +18,24 @@ const employeeSchema = new mongoose.Schema({
   },
   designation: {
     type: String,
-    enum: ['HR', 'Manager', 'Sales'],  
+    enum: ['hr', 'manager', 'sales'],  
     required: true
   },
   gender: {
     type: String,
-    enum: ['M', 'F'],
+    enum: ['male', 'female'],
     required: true
   },
   course: {
     type: [String],
-    enum: ['MCA', 'BCA', 'BSC'],  
+    enum: ['mca', 'bca', 'bsc'],  
     default: []
   },
-  profileImage: {
+  profileImageURL: {
     type: String,
     required: false 
   }
-});
+},{ timestamps: true });
 
 const Employee = mongoose.model('Employee', employeeSchema);
 

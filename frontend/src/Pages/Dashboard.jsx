@@ -1,8 +1,64 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '../component/Header';
 import { Link } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import {useNavigate} from 'react-router-dom'
+import { BaseHost } from '../Api';
+import axios from 'axios';
 
 const Dashboard = () => {
+  const navigate = useNavigate()
+  const[empdata,setEmpdata] = useState()
+
+  useEffect(() => {
+    const user = Cookies.get('user');
+    
+    // If the cookie exists, parse it to get the object
+    if (user) {
+      const parsedUser = JSON.parse(user); // Assuming the user object was stored as a stringified JSON
+      console.log(parsedUser.email);
+    } else {
+      console.log("No user is logged in");
+      navigate('/login')
+
+    }
+  }, []);
+
+  const formatDate = (date) => {
+    const options = { day: '2-digit', month: 'short', year: 'numeric' };
+    return new Date(date).toLocaleDateString('en-GB', options).replace(',', '');
+};
+
+  const fetchFnc=async()=>{
+    const {data}=await axios.get(`${BaseHost}/employee/all`);
+    if(data){
+      console.log(data.employees);
+      setEmpdata(data.employees)
+    }
+  }
+
+  useEffect(() =>{
+   fetchFnc();
+
+  },[])
+
+  const handledelete = async (id) => {
+    try {
+      
+      await axios.delete(`${BaseHost}/employee/delete/${id}`);
+      
+      
+      const updatedEmployees = empdata.filter((employee) => employee._id !== id);
+
+     
+      setEmpdata(updatedEmployees);
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+    }
+  };
+
+
+  
   return (
     <div className="container mx-auto p-4">
       {/* Reuse the Header component */}
@@ -50,56 +106,11 @@ const Dashboard = () => {
           </tr>
         </thead>
         <tbody>
-          {[
-            {
-              id: 1,
-              image: '/path-to-image',
-              name: 'Hukum',
-              email: 'hcgupta@cstech.in',
-              mobile: '954010044',
-              designation: 'HR',
-              gender: 'Male',
-              course: 'MCA',
-              createDate: '13-Feb-21',
-            },
-            {
-              id: 2,
-              image: '/path-to-image',
-              name: 'Manish',
-              email: 'manish@cstech.in',
-              mobile: '954010033',
-              designation: 'Sales',
-              gender: 'Male',
-              course: 'BCA',
-              createDate: '12-Feb-21',
-            },
-            {
-              id: 3,
-              image: '/path-to-image',
-              name: 'Yash',
-              email: 'yash@cstech.in',
-              mobile: '954010022',
-              designation: 'Manager',
-              gender: 'Male',
-              course: 'BSC',
-              createDate: '11-Feb-21',
-            },
-            {
-              id: 4,
-              image: '/path-to-image',
-              name: 'Abhishek',
-              email: 'abhishek@cstech.in',
-              mobile: '954010033',
-              designation: 'HR',
-              gender: 'Male',
-              course: 'MCA',
-              createDate: '13-Feb-21',
-            },
-          ].map((employee) => (
-            <tr key={employee.id} className="text-center">
-              <td className="border border-gray-300 px-4 py-2">{employee.id}</td>
+         { empdata?.map((employee,i) => (
+            <tr key={employee._id} className="text-center">
+              <td className="border border-gray-300 px-4 py-2">{i}</td>
               <td className="border border-gray-300 px-4 py-2">
-                <img src={employee.image} alt="profile" className="w-10 h-10 rounded-full" />
+                <img src={`${BaseHost}/uploads/${employee?.profileImageURL}`} alt="profile" className="w-10 h-10 rounded-full" />
               </td>
               <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
               <td className="border border-gray-300 px-4 py-2 text-blue-500">
@@ -109,10 +120,10 @@ const Dashboard = () => {
               <td className="border border-gray-300 px-4 py-2">{employee.designation}</td>
               <td className="border border-gray-300 px-4 py-2">{employee.gender}</td>
               <td className="border border-gray-300 px-4 py-2">{employee.course}</td>
-              <td className="border border-gray-300 px-4 py-2">{employee.createDate}</td>
+              <td className="border border-gray-300 px-4 py-2">{formatDate(employee.createdAt)}</td>
               <td className="border border-gray-300 px-4 py-2 space-x-2">
-                <button className="text-blue-500 hover:underline">Edit</button>
-                <button className="text-red-500 hover:underline">Delete</button>
+                <button className="text-blue-500 hover:underline" onClick={()=>navigate(`/empedit/${employee._id}`)}>Edit</button>
+                <button className="text-red-500 hover:underline" onClick={()=>handledelete(employee._id)}>Delete</button>
               </td>
             </tr>
           ))}

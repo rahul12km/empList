@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import Header from '../component/Header';
+import axios from 'axios';
+import { BaseHost } from '../Api';
+import {useNavigate} from "react-router-dom"
 
 const Empinfo = () => {
+  const navigate=useNavigate()
   const [emp, setEmp] = useState({
     name: "",
     email: "",
@@ -9,10 +13,16 @@ const Empinfo = () => {
     designation: "",
     gender: "",
     course: [],
+    profileImage: null,
+    profileImageUrl: ''
   });
 
+ const randomImg='https://media.istockphoto.com/id/1495088043/vector/user-profile-icon-avatar-or-person-icon-profile-picture-portrait-symbol-default-portrait.jpg?s=612x612&w=0&k=20&c=dhV2p1JwmloBTOaGAtaA3AW1KSnjsdMt7-U_3EZElZ0='
+
+useEffect(()=>{},[emp])
+
   const onChangefnc = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked ,files} = e.target;
     
     if (type === 'checkbox') {
       setEmp(prevState => ({
@@ -26,7 +36,13 @@ const Empinfo = () => {
         ...prevState,
         [name]: value
       }));
-    } else {
+    }else if (type === 'file') {
+      const file = files[0];
+      setEmp(prevState => ({
+        ...prevState,
+        profileImage: file,
+        profileImageUrl: URL.createObjectURL(file)
+      }))} else {
       setEmp(prevState => ({
         ...prevState,
         [name]: value
@@ -34,11 +50,38 @@ const Empinfo = () => {
     }
   };
 
-  const handlesubmit=(e)=>{
+  const handlesubmit = async (e) => {
     e.preventDefault();
-   
+    console.log(emp)
+    
+    const formData = new FormData();
+formData.append('name', emp.name);
+formData.append('email', emp.email);
+formData.append('mobile', emp.mobile);
+formData.append('designation', emp.designation);
+formData.append('gender', emp.gender);
+emp.course.forEach(course => formData.append('course', course));
+if (emp.profileImage) {
+  formData.append('profileImage', emp.profileImage);
+}
 
+try {
+  const response = await axios.post(`${BaseHost}/employee/create`, formData, {
+      headers: {
+          'Content-Type': 'multipart/form-data'
+      }
+  });
+  alert(response.data.message);
+  navigate('/dashboard')
+} catch (error) {
+  if (error.response && error.response.status === 400) {
+      alert(error.response.data.message);
+  } else {
+      alert('An error occurred. Please try again.');
   }
+}
+
+  };
 
   return (
     <>
@@ -200,11 +243,12 @@ const Empinfo = () => {
                     id="profileImage"
                     name="profileImage"
                     accept="image/*"
+                    onChange={onChangefnc}
                     className="w-full border-2 border-gray-300 p-2 rounded outline-none focus:border-[#5a49e3] bg-white"
                   />
                   <img
-                    src='https://media.istockphoto.com/id/1495088043/vector/user-profile-icon-avatar-or-person-icon-profile-picture-portrait-symbol-default-portrait.jpg?s=612x612&w=0&k=20&c=dhV2p1JwmloBTOaGAtaA3AW1KSnjsdMt7-U_3EZElZ0='
-                    alt='Profile'
+                    src={emp.profileImageUrl || randomImg}
+                    alt='Profile Preview'
                     className='h-20 w-20'
                   />
                 </div>
